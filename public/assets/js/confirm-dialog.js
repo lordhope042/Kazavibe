@@ -1,0 +1,4 @@
+(function(){
+function confirmAction(message){return new Promise(resolve=>{const dialog=document.createElement('dialog');dialog.className='app-confirm-dialog';dialog.setAttribute('aria-labelledby','confirm-title');dialog.innerHTML='<form method="dialog"><h2 id="confirm-title">Please confirm</h2><p></p><div class="confirm-actions"><button value="cancel" class="btn">Cancel</button><button value="confirm" class="btn btn-danger">Continue</button></div></form>';dialog.querySelector('p').textContent=message||'Are you sure you want to continue?';document.body.appendChild(dialog);dialog.addEventListener('close',()=>{const yes=dialog.returnValue==='confirm';dialog.remove();resolve(yes)},{once:true});dialog.showModal();dialog.querySelector('button[value=cancel]').focus();});}
+document.addEventListener('submit',async e=>{const b=e.submitter;if(!b||!b.dataset.confirm)return;e.preventDefault();if(await confirmAction(b.dataset.confirm))b.form.requestSubmit(b);});
+})();

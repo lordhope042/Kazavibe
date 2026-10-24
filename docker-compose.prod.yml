@@ -1,0 +1,34 @@
+# Production stack: Caddy (HTTPS) -> app -> Postgres. The database has NO published port, so it is not reachable from the internet.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment: { POSTGRES_USER: kazavibe, POSTGRES_PASSWORD: "${DB_PASSWORD}", POSTGRES_DB: kazavibe }
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U kazavibe"], interval: 5s, timeout: 5s, retries: 10 }
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://kazavibe:${DB_PASSWORD}@db:5432/kazavibe"
+      STORAGE_DIR: /data/storage
+    volumes: ["./data/storage:/data/storage"]
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"], interval: 30s, timeout: 10s, retries: 5, start_period: 60s }
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment: { DOMAIN: "${DOMAIN}" }
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy_data:/data", "caddy_config:/config"]
+    depends_on: [app]
+  # Optional relay so calls work on mobile data. Start with:  docker compose --env-file .env.production --profile turn up -d
+  coturn:
+    profiles: ["turn"]
+    image: coturn/coturn:latest
+    restart: unless-stopped
+    network_mode: host
+    command: ["-n", "--log-file=stdout", "--realm=${DOMAIN}", "--use-auth-secret", "--static-auth-secret=${TURN_SECRET}", "--fingerprint", "--no-cli", "--no-multicast-peers", "--min-port=49160", "--max-port=49200", "--denied-peer-ip=10.0.0.0-10.255.255.255", "--denied-peer-ip=172.16.0.0-172.31.255.255", "--denied-peer-ip=192.168.0.0-192.168.255.255", "--denied-peer-ip=127.0.0.0-127.255.255.255"]
+volumes: { pgdata: {}, caddy_data: {}, caddy_config: {} }

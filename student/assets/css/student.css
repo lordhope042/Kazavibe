@@ -1,0 +1,13 @@
+@import url('../../../public/assets/css/app.css');
+
+/* Student-only refinements */
+.student-hero { background: linear-gradient(135deg, var(--green-dark), var(--green)); color: #fff; border-radius: var(--radius); padding: 20px; margin-bottom: 18px; }
+.student-hero p { color: rgba(255,255,255,.78); font-size: 12px; }
+
+
+:root { color-scheme: light; --theme-bg:#f4f7fb; --theme-surface:#ffffff; --theme-text:#152238; --theme-muted:#53647a; --theme-border:#d4deea; --theme-primary:#2459a9; }
+:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline:3px solid #c99a2e; outline-offset:3px; }
+@media (max-width:700px) { .table-responsive, .panel table, main table { display:block; max-width:100%; overflow-x:auto; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
+
+.app-confirm-dialog{border:1px solid var(--theme-border);border-radius:16px;padding:1.25rem;max-width:min(92vw,420px);background:var(--theme-surface);color:var(--theme-text)}.app-confirm-dialog::backdrop{background:#07142699}.app-confirm-dialog form{display:grid;gap:1rem}.confirm-actions{display:flex;justify-content:flex-end;gap:.75rem}.inline-form{display:inline-flex}

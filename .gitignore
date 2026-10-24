@@ -1,0 +1,24 @@
+node_modules
+.next
+.env
+next-env.d.ts
+storage
+data
+backups
+.env.production
+
+# unrelated PHP project
+/admin/
+/api/
+/auth/
+/config/
+/database/
+/includes/
+/preview/
+/student/
+/tests/
+/public/index.php
+/public/assets/
+/IMPLEMENTATION_NOTES.md
+/PROGRESS.md
+/UPDATE_NOTES.md

@@ -1,0 +1,367 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+enum AccountStatus {
+  ACTIVE
+  RESTRICTED
+  SUSPENDED
+}
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String?       @unique
+  phone        String?       @unique
+  passwordHash String
+  dateOfBirth  DateTime
+  role         Role          @default(MEMBER)
+  status       AccountStatus @default(ACTIVE)
+  plan         Plan          @default(FREE)
+  emailVerifiedAt   DateTime?
+  phoneVerifiedAt   DateTime?
+  passwordChangedAt DateTime?
+  planExpiresAt DateTime?
+  interestsSent Interest[] @relation("intFrom")
+  interestsGot  Interest[] @relation("intTo")
+  matchesA Match[] @relation("matchA")
+  matchesB Match[] @relation("matchB")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  profile      Profile?
+  following    Follow[]        @relation("follower")
+  followers    Follow[]        @relation("following")
+  sentRequests FollowRequest[] @relation("reqFrom")
+  gotRequests  FollowRequest[] @relation("reqTo")
+  blocking     Block[]         @relation("blocker")
+  blockedBy    Block[]         @relation("blocked")
+  reports      Report[]
+  posts Post[]
+  payments Payment[]
+  pushSubs PushSub[]
+  verifications Verification[]
+  callsMade Call[] @relation("callFrom")
+  callsGot  Call[] @relation("callTo")
+  likes Like[]
+  saves Save[]
+  comments Comment[]
+  notifications Notification[] @relation("notifTo")
+  notifsCaused  Notification[] @relation("notifBy")
+  convsA Conversation[] @relation("convA")
+  convsB Conversation[] @relation("convB")
+}
+
+model Profile {
+  userId      String     @id
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username    String     @unique
+  displayName String
+  bio         String     @default("")
+  interests   String[]
+  area        String     @default("Kazaure Central")
+  visibility  Visibility @default(PUBLIC)
+  verified    Boolean    @default(false)
+  avatarPath     String?
+  gender         String?
+  datingIntent   Boolean @default(false)
+  locationPaused Boolean @default(false)
+  onboarded      Boolean @default(false)
+  intent         String?
+  hidePhoto      Boolean @default(false)
+  createdAt   DateTime   @default(now())
+  @@index([area])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  @@id([followerId, followingId])
+  @@index([followingId])
+}
+
+model FollowRequest {
+  id        String   @id @default(uuid())
+  fromId    String
+  toId      String
+  createdAt DateTime @default(now())
+  from      User @relation("reqFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to        User @relation("reqTo", fields: [toId], references: [id], onDelete: Cascade)
+  @@unique([fromId, toId])
+  @@index([toId])
+}
+
+model Block {
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model Report {
+  id         String       @id @default(uuid())
+  reporterId String
+  reporter   User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType String
+  targetId   String
+  category   String
+  details    String?
+  status     ReportStatus @default(OPEN)
+  createdAt  DateTime     @default(now())
+  @@index([status, createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  action    String
+  targetId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+  @@index([actorId, createdAt])
+}
+
+enum PostKind {
+  PHOTO
+  CLIP
+}
+enum Audience {
+  PUBLIC
+  FOLLOWERS
+}
+enum ContentStatus {
+  VISIBLE
+  REMOVED
+}
+
+model Post {
+  id        String        @id @default(uuid())
+  authorId  String
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  kind      PostKind
+  mediaPath String        @unique
+  caption   String        @default("")
+  audience  Audience      @default(PUBLIC)
+  status    ContentStatus @default(VISIBLE)
+  createdAt DateTime      @default(now())
+  likes     Like[]
+  saves     Save[]
+  comments  Comment[]
+  @@index([createdAt])
+  @@index([authorId, createdAt])
+}
+model Like {
+  postId String
+  userId String
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([postId, userId])
+}
+model Save {
+  postId String
+  userId String
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([postId, userId])
+}
+model Comment {
+  id        String        @id @default(uuid())
+  postId    String
+  authorId  String
+  body      String
+  status    ContentStatus @default(VISIBLE)
+  createdAt DateTime      @default(now())
+  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment?  @relation("replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("replies")
+  @@index([parentId])
+  @@index([postId, createdAt])
+}
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  actorId   String
+  type      String
+  postId    String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User @relation("notifTo", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User @relation("notifBy", fields: [actorId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
+}
+model Conversation {
+  id          String   @id @default(uuid())
+  userAId     String
+  userBId     String
+  initiatorId String
+  accepted    Boolean  @default(false)
+  pinnedA     Boolean  @default(false)
+  pinnedB     Boolean  @default(false)
+  archivedA   Boolean  @default(false)
+  archivedB   Boolean  @default(false)
+  updatedAt   DateTime @default(now())
+  userA       User @relation("convA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB       User @relation("convB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  @@unique([userAId, userBId])
+  @@index([userBId])
+}
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  body           String
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  deliveredAt    DateTime?
+  deletedAt      DateTime?
+  pinned         Boolean   @default(false)
+  hiddenA        Boolean   @default(false)
+  hiddenB        Boolean   @default(false)
+  kind           String    @default("TEXT")
+  mediaPath      String?
+  fileName       String?
+  durationSec    Int?
+  @@index([mediaPath])
+  @@index([conversationId, createdAt])
+}
+
+enum Plan {
+  FREE
+  PLUS
+}
+enum InterestKind {
+  LIKE
+  PASS
+}
+
+// Private until mutual: a LIKE is never shown to the other person unless they are Plus, or they like back.
+model Interest {
+  fromId    String
+  toId      String
+  kind      InterestKind
+  createdAt DateTime     @default(now())
+  from      User @relation("intFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to        User @relation("intTo", fields: [toId], references: [id], onDelete: Cascade)
+  @@id([fromId, toId])
+  @@index([toId, kind])
+}
+model Match {
+  id        String   @id @default(uuid())
+  userAId   String
+  userBId   String
+  createdAt DateTime @default(now())
+  userA     User @relation("matchA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB     User @relation("matchB", fields: [userBId], references: [id], onDelete: Cascade)
+  @@unique([userAId, userBId])
+  @@index([userBId])
+}
+
+model OtpCode {
+  id        String    @id @default(uuid())
+  email     String
+  purpose   String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int       @default(0)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  // `email` holds the target: an email address, or a phone number for PHONE_* purposes
+  @@index([email, purpose, createdAt])
+}
+
+// Only the Paystack reference and amounts are stored. Never card details.
+model Payment {
+  id        String    @id @default(uuid())
+  userId    String
+  reference String    @unique
+  planId    String
+  months    Int
+  amountKobo Int
+  status    String    @default("PENDING") // PENDING | SUCCESS | FAILED | REVIEW
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
+}
+
+model PushSub {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+// Manual (human-reviewed) verification. The selfie is deleted as soon as an admin decides.
+model Verification {
+  id         String    @id @default(uuid())
+  userId     String
+  code       String
+  selfiePath String?
+  status     String    @default("STARTED") // STARTED | PENDING | APPROVED | REJECTED
+  reason     String?
+  consentAt  DateTime
+  createdAt  DateTime  @default(now())
+  decidedAt  DateTime?
+  decidedBy  String?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model Call {
+  id         String    @id @default(uuid())
+  callerId   String
+  calleeId   String
+  kind       String    // AUDIO | VIDEO
+  status     String    @default("RINGING") // RINGING | ACTIVE | DECLINED | CANCELED | MISSED | ENDED
+  createdAt  DateTime  @default(now())
+  answeredAt DateTime?
+  endedAt    DateTime?
+  caller     User      @relation("callFrom", fields: [callerId], references: [id], onDelete: Cascade)
+  callee     User      @relation("callTo", fields: [calleeId], references: [id], onDelete: Cascade)
+  signals    CallSignal[]
+  @@index([calleeId, status])
+  @@index([callerId, status])
+}
+model CallSignal {
+  id        Int      @id @default(autoincrement())
+  callId    String
+  fromId    String
+  type      String   // offer | answer | ice
+  payload   String
+  createdAt DateTime @default(now())
+  call      Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+  @@index([callId, id])
+}
