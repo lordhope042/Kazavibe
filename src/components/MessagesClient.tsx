@@ -1,4 +1,5 @@
 'use client';
+import { postUpload } from '@/lib/upload';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Avatar from './Avatar';
@@ -84,7 +85,7 @@ export default function MessagesClient({ startWith }: { startWith?: string }) {
   const recorder = useRef<MediaRecorder | null>(null), chunks = useRef<Blob[]>([]), timer = useRef<ReturnType<typeof setInterval> | null>(null), cancelled = useRef(false), secs = useRef(0);
 
   const loadList = useCallback(async () => { const x = await api<Conv[]>('/api/conversations'); if (x.ok) setConvs(x.data); }, []);
-  useEffect(() => { loadList(); const t = setInterval(loadList, 8000); api<any>('/api/plan').then((x) => x.ok && setPlan(x.data.plan)); return () => clearInterval(t); }, [loadList]);
+  useEffect(() => { loadList(); const t = setInterval(() => { if (!document.hidden) loadList(); }, 8000); api<any>('/api/plan').then((x) => x.ok && setPlan(x.data.plan)); return () => clearInterval(t); }, [loadList]);
   useEffect(() => { if (startWith) api<{ id: string }>('/api/conversations', 'POST', { username: startWith }).then((x) => { if (x.ok) { setCur(x.data.id); loadList(); } else setErr((x.data as any).error ?? ''); }); }, [startWith, loadList]);
   useEffect(() => {
     if (!cur) return;
@@ -108,7 +109,7 @@ export default function MessagesClient({ startWith }: { startWith?: string }) {
         return changed ? next : m;
       });
     };
-    pollRef.current = poll; poll(); const t = setInterval(poll, 3000);
+    pollRef.current = poll; poll(); const t = setInterval(() => { if (!document.hidden) poll(); }, 3000);
     return () => { on = false; clearInterval(t); cancelled.current = true; if (recorder.current && recorder.current.state !== 'inactive') recorder.current.stop(); };
   }, [cur]);
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [msgs.length]);
@@ -122,9 +123,8 @@ export default function MessagesClient({ startWith }: { startWith?: string }) {
   async function sendFile(file: File, kind: 'file' | 'voice', dur?: number) {
     const id = curRef.current; if (!id) return; setErr('');
     if (file.size > 50 * 1024 * 1024) return setErr('File is too large (50 MB maximum).');
-    const fd = new FormData(); fd.set('file', file); fd.set('kind', kind); if (dur) fd.set('durationSec', String(dur));
-    const res = await fetch(`/api/conversations/${id}/attachments`, { method: 'POST', body: fd }), d = await res.json().catch(() => ({}));
-    if (!res.ok) return setErr(d.error ?? 'Could not send.');
+    const { ok, data: d } = await postUpload(`/api/conversations/${id}/attachments`, file, kind === 'voice' ? 'voice' : 'chat', { kind, durationSec: dur, fileName: file.name });
+    if (!ok) return setErr(d.error ?? 'Could not send.');
     setMsgs((m) => [...m, d]); last.current = d.createdAt; loadList();
   }
   async function startRec() {

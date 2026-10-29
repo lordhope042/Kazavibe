@@ -8,6 +8,7 @@ import Avatar from './Avatar';
 import CreatePost from './CreatePost';
 import Footer from './Footer';
 import CallManager from './CallManager';
+import TestBanner from './TestBanner';
 import { LangSwitch, useT } from './LangProvider';
 import { api } from '@/lib/client';
 
@@ -19,7 +20,7 @@ export default function Shell({ me, children }: { me: Me; children: React.ReactN
   const [unread, setUnread] = useState(0), [msgUnread, setMsgUnread] = useState(0), [post, setPost] = useState(false), [q, setQ] = useState('');
   useEffect(() => {
     let on = true;
-    const f = async () => { const x = await api('/api/notifications?count=1'); if (on && x.ok) { setUnread(x.data.unread); setMsgUnread(x.data.unreadMessages ?? 0); } };
+    const f = async () => { if (document.hidden) return; const x = await api('/api/notifications?count=1'); if (on && x.ok) { setUnread(x.data.unread); setMsgUnread(x.data.unreadMessages ?? 0); } };
     f(); const t = setInterval(f, 30000);
     const open = () => setPost(true);
     window.addEventListener('kv:compose', open);
@@ -50,6 +51,7 @@ export default function Shell({ me, children }: { me: Me; children: React.ReactN
               <div className="card absolute right-0 mt-2 w-48 space-y-1 p-2 text-sm shadow-xl">
                 <Link className="block rounded-xl px-3 py-2 hover:bg-hover" href={`/profile/${me.username}`}>{t('my_profile')}</Link>
                 <Link className="block rounded-xl px-3 py-2 hover:bg-hover" href="/plus"><i className="fa-solid fa-crown mr-2 text-brand-500" />KazaVibe Plus</Link>
+                <Link className="block rounded-xl px-3 py-2 hover:bg-hover" href="/feedback"><i className="fa-regular fa-comment-dots mr-2 text-brand-500" />Send feedback</Link>
                 <Link className="block rounded-xl px-3 py-2 hover:bg-hover" href="/settings">{t('settings')}</Link>
                 <Link className="block rounded-xl px-3 py-2 hover:bg-hover sm:hidden" href="/discover">{t('nav_discover')}</Link>
                 <Link className="block rounded-xl px-3 py-2 hover:bg-hover sm:hidden" href="/nearby">{t('nav_nearby')}</Link>
@@ -62,6 +64,7 @@ export default function Shell({ me, children }: { me: Me; children: React.ReactN
           </div>
         </div>
       </header>
+      <TestBanner />
       <main className="mx-auto max-w-7xl p-3 pb-24 sm:p-6 sm:pb-8">{children}</main>
       <Footer compact />
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-card pb-[env(safe-area-inset-bottom)] sm:hidden" aria-label="Main">

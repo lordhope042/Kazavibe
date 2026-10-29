@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { hash, createSession } from '@/lib/auth';
 import { route, ok, fail } from '@/lib/http';
-import { hit } from '@/lib/ratelimit';
+import { hitDb } from '@/lib/ratelimit';
 import { ageOf, parseContact } from '@/lib/validators';
 import { issueOtp } from '@/lib/otp';
 
@@ -17,7 +17,7 @@ const S = z.object({
 
 export const POST = route(async (req) => {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'local';
-  if (!hit('reg:' + ip, 10, 3_600_000)) return fail('Too many attempts. Try again later.', 429);
+  if (!(await hitDb('reg:' + ip, 10, 3_600_000))) return fail('Too many attempts. Try again later.', 429);
   const b = S.parse(await req.json());
   const dob = new Date(b.dateOfBirth);
   if (isNaN(+dob) || ageOf(dob) > 120) return fail('Enter a valid date of birth.');

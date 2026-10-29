@@ -1,6 +1,7 @@
-const CACHE = 'kv-v1';
-self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.add('/offline.html')).then(() => self.skipWaiting())); });
-self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
+const CACHE = 'kv-v2';
+// The offline page and its icon are saved at install time so the page still looks right with no internet.
+self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/offline.html', '/icon-192.png'])).then(() => self.skipWaiting())); });
+self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 // Safari/iOS require every push to show a notification. Other browsers: stay quiet while the app is open and focused.
 const strict = /safari/i.test(self.navigator.userAgent) && !/chrome|chromium|android|edg/i.test(self.navigator.userAgent);
 self.addEventListener('push', (e) => {
@@ -22,4 +23,5 @@ self.addEventListener('notificationclick', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   if (e.request.mode === 'navigate') e.respondWith(fetch(e.request).catch(() => caches.match('/offline.html').then((r) => r || new Response('You are offline', { status: 503 }))));
+  else if (e.request.url.endsWith('/icon-192.png')) e.respondWith(caches.match(e.request).then((r) => r || fetch(e.request)));
 });

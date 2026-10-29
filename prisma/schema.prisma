@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"] // rhel = what Vercel runs on
 }
 
 datasource db {
@@ -55,6 +56,7 @@ model User {
   blocking     Block[]         @relation("blocker")
   blockedBy    Block[]         @relation("blocked")
   reports      Report[]
+  feedback     Feedback[]
   posts Post[]
   payments Payment[]
   pushSubs PushSub[]
@@ -133,6 +135,20 @@ model Report {
   status     ReportStatus @default(OPEN)
   createdAt  DateTime     @default(now())
   @@index([status, createdAt])
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  String
+  message   String
+  rating    Int?
+  page      String?
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([handled, createdAt])
+  @@index([userId, createdAt])
 }
 
 model AuditLog {
@@ -364,4 +380,10 @@ model CallSignal {
   createdAt DateTime @default(now())
   call      Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
   @@index([callId, id])
+}
+
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime
 }

@@ -18,7 +18,7 @@ export default function GlobalSpinner() {
     window.fetch = async (input, init) => {
       const m = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
       if (m === 'GET' || m === 'HEAD') return orig(input, init);
-      const up = init?.body instanceof FormData;
+      const up = init?.body instanceof FormData || init?.body instanceof Blob;
       setPending((n) => n + 1); if (up) setUploads((n) => n + 1);
       try { return await orig(input, init); } finally { setPending((n) => Math.max(0, n - 1)); if (up) setUploads((n) => Math.max(0, n - 1)); }
     };

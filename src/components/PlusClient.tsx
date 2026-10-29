@@ -15,16 +15,17 @@ export default function PlusClient() {
     if (x.ok) window.location.href = x.data.url; else { setBusy(''); setErr(x.data.error ?? 'Could not start the payment.'); }
   }
   if (!d) return <p className="text-muted">Loading…</p>;
-  const plus = d.plan === 'PLUS', per1 = d.plans[0]?.priceNgn ?? 0;
+  const free = !!d.freeForAll, plus = d.plan === 'PLUS', per1 = d.plans[0]?.priceNgn ?? 0;
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="text-center"><i className="fa-solid fa-crown text-3xl text-brand-500" /><h1 className="mt-2 text-3xl font-black">KazaVibe Plus</h1>
-        <p className="mt-1 text-soft">{plus ? <>You&apos;re a Plus member until <b className="text-fg">{new Date(d.expiresAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</b>. Paying again adds to the time you have left.</> : 'Get more out of KazaVibe. Safety tools always stay free.'}</p></div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {[['Free', FREE, false], ['Plus', PLUS, true]].map(([t, items, hi]) => (
-          <div key={String(t)} className={`card p-5 ${hi ? 'border-brand-600' : ''}`}><h2 className="font-bold">{String(t)}</h2>
+        <p className="mt-1 text-soft">{free ? <>This is a <b className="text-fg">10-day test period</b>. Every Plus feature is free for everyone until <b className="text-fg">{new Date(d.freeUntil).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</b>. After that, Plus becomes a paid plan. Tell us what you think on the feedback page.</> : plus ? <>You&apos;re a Plus member until <b className="text-fg">{new Date(d.expiresAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</b>. Paying again adds to the time you have left.</> : 'Get more out of KazaVibe. Safety tools always stay free.'}</p></div>
+      <div className={`grid gap-3 ${free ? 'mx-auto max-w-md' : 'sm:grid-cols-2'}`}>
+        {[['Free', FREE, false], ['Plus', PLUS, true]].filter(([t]) => !free || t === 'Plus').map(([t, items, hi]) => (
+          <div key={String(t)} className={`card p-5 ${hi ? 'border-brand-600' : ''}`}><h2 className="font-bold">{String(t)}{free && ' · free during the test'}</h2>
             <ul className="mt-3 space-y-2 text-sm text-soft">{(items as string[]).map((i) => <li key={i} className="flex gap-2"><i className={`fa-solid fa-check mt-1 text-xs ${hi ? 'text-brand-500' : 'text-muted'}`} />{i}</li>)}</ul></div>))}
       </div>
+      {!free && <>
       <div className="grid gap-3 sm:grid-cols-3">
         {d.plans.map((p: any) => {
           const save = p.months > 1 ? Math.round((1 - p.priceNgn / (per1 * p.months)) * 100) : 0;
@@ -36,6 +37,7 @@ export default function PlusClient() {
       {!d.hasEmail && <p className="text-center text-sm text-danger">Add an email address to your account before paying.</p>}
       <p role="alert" className="text-center text-sm text-danger">{err}</p>
       <p className="text-center text-xs text-muted">One-time payment for the period you choose. It does not renew automatically. Paid securely by Paystack (card, bank transfer or USSD). KazaVibe never sees or stores your card details.</p>
+      </>}
       {d.payments.length > 0 && (
         <div className="card p-5"><h2 className="mb-2 font-bold">Payment history</h2>
           <ul className="divide-y divide-line text-sm">{d.payments.map((p: any) => <li key={p.reference} className="flex items-center justify-between gap-3 py-2"><span className="text-soft">{new Date(p.createdAt).toLocaleDateString()} · {naira(p.amountNgn)}</span><span className={`text-xs font-semibold ${p.status === 'SUCCESS' ? 'text-good' : p.status === 'PENDING' ? 'text-muted' : 'text-danger'}`}>{p.status === 'REVIEW' ? 'UNDER REVIEW' : p.status}</span></li>)}</ul></div>)}

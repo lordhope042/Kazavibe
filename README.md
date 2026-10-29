@@ -26,6 +26,8 @@ Discover · Nearby (by area, with pause switch) · Messages (requests, accept/de
 - Run `npx prisma migrate dev --name chat_media_replies` after updating.
 
 ## Deploying
+- Vercel route: `DEPLOY-VERCEL.md` (uploads go straight to Supabase, rate limits for logins/codes/SMS live in the database, polling pauses in background tabs).
+- Free-tier route: `DEPLOY-RAILWAY.md` (Supabase database + private media bucket, GitHub, Railway). Set `STORAGE_DRIVER=supabase` anywhere the disk is temporary.
 See `DEPLOY.md`: Docker + Caddy (automatic HTTPS) + private Postgres on a small server, a free laptop tunnel for quick tests, Android APK via PWABuilder, iPhone via Add to Home Screen. `GET /api/health` is the health check.
 
 ## Calls, phone sign-in, verification, Hausa, installable app + push

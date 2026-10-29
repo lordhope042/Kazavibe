@@ -1,9 +1,7 @@
 import { randomUUID } from 'crypto';
-import fs from 'fs/promises';
-import path from 'path';
+import { deleteObject, putObject } from './storage';
 import { HttpError } from './http';
 
-export const DIR = process.env.STORAGE_DIR ?? path.join(process.cwd(), 'storage');
 export type Kind = 'image' | 'video' | 'audio' | 'doc';
 export const MIME: Record<string, string> = {
   jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp', mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm',
@@ -14,10 +12,10 @@ export const MIME: Record<string, string> = {
 };
 export const DOC_EXT = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
 export const NAME_RE = new RegExp(`^[a-f0-9-]{36}\\.(${Object.keys(MIME).join('|')})$`);
-const LIMIT_MB: Record<Kind, number> = { image: 8, video: 50, audio: 10, doc: 20 };
+export const LIMIT_MB: Record<Kind, number> = { image: 8, video: 50, audio: 10, doc: 20 };
 
 /** Identify the file from its real bytes, never from the extension the client claims. Office files must also carry a matching extension. */
-function sniff(b: Buffer, ext: string): { ext: string; kinds: Kind[] } | null {
+export function sniff(b: Buffer, ext: string): { ext: string; kinds: Kind[] } | null {
   const h4 = b.subarray(0, 4).toString('hex'), s4 = b.subarray(0, 4).toString('latin1');
   if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return { ext: 'jpg', kinds: ['image'] };
   if (h4 === '89504e47') return { ext: 'png', kinds: ['image'] };
@@ -45,8 +43,7 @@ export async function saveUpload(file: File, allow: Kind[]) {
   if (!s || !kind) throw new HttpError('This file type is not allowed.');
   if (file.size > LIMIT_MB[kind] * 1024 * 1024) throw new HttpError(`${kind === 'doc' ? 'Documents' : kind === 'audio' ? 'Voice notes' : kind === 'image' ? 'Photos' : 'Videos'} can be ${LIMIT_MB[kind]} MB at most.`);
   const name = `${randomUUID()}.${s.ext}`;
-  await fs.mkdir(DIR, { recursive: true });
-  await fs.writeFile(path.join(DIR, name), buf);
+  await putObject(name, buf, MIME[s.ext]);
   return { name, kind };
 }
-export const removeFile = (name?: string | null) => (name && NAME_RE.test(name) ? fs.unlink(path.join(DIR, name)).catch(() => {}) : Promise.resolve());
+export const removeFile = (name?: string | null) => (name && NAME_RE.test(name) ? deleteObject(name) : Promise.resolve());

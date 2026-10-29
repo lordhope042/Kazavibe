@@ -98,8 +98,8 @@ export default function CallManager() {
   // ring detection
   useEffect(() => {
     let on = true;
-    const f = async () => { if (activeRef.current) return; const x = await api<any>('/api/calls/incoming'); if (on && x.ok) setIncoming(x.data.call); };
-    f(); const t = setInterval(f, 3000);
+    const f = async () => { if (activeRef.current || document.hidden) return; const x = await api<any>('/api/calls/incoming'); if (on && x.ok) setIncoming(x.data.call); };
+    f(); const t = setInterval(f, 6000);
     return () => { on = false; clearInterval(t); };
   }, []);
   // hang up if the tab is closed mid-call

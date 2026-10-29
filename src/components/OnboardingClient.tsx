@@ -1,4 +1,5 @@
 'use client';
+import { postUpload } from '@/lib/upload';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Avatar from './Avatar';
@@ -15,8 +16,8 @@ export default function OnboardingClient({ name, avatarUrl, area }: { name: stri
   const [ar, setAr] = useState(area), [vis, setVis] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC'), [dating, setDating] = useState(false), [err, setErr] = useState(''), [busy, setBusy] = useState(false);
   async function photo(f?: File) {
     if (!f) return; setErr('');
-    const fd = new FormData(); fd.set('file', f);
-    const res = await fetch('/api/me/avatar', { method: 'POST', body: fd }), d = await res.json().catch(() => ({}));
+    const { ok, data: d } = await postUpload('/api/me/avatar', f, 'avatar');
+    const res = { ok };
     if (res.ok) setAv(d.avatarUrl); else setErr(d.error ?? 'Upload failed.');
   }
   async function finish() {

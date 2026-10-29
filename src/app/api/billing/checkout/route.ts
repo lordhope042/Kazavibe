@@ -2,15 +2,17 @@ import { randomUUID } from 'crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { route, ok, fail } from '@/lib/http';
-import { hit } from '@/lib/ratelimit';
+import { hitDb } from '@/lib/ratelimit';
 import { initializeTransaction, planById } from '@/lib/billing';
+import { plusFreeNow } from '@/lib/plan';
 
 export const POST = route(async (req, _c, me) => {
+  if (plusFreeNow()) return fail('KazaVibe Plus is free for everyone right now. No payment needed.');
   const { planId } = z.object({ planId: z.string() }).parse(await req.json());
   const plan = planById(planId);
   if (!plan) return fail('Unknown plan.');
   if (!me.email) return fail('Add an email address to your account before paying.');
-  if (!hit('checkout:' + me.id, 10, 3_600_000)) return fail('Too many attempts. Try again later.', 429);
+  if (!(await hitDb('checkout:' + me.id, 10, 3_600_000))) return fail('Too many attempts. Try again later.', 429);
   const reference = 'kv_' + randomUUID().replaceAll('-', ''), amountKobo = plan.priceNgn * 100;
   await prisma.payment.create({ data: { userId: me.id, reference, planId: plan.id, months: plan.months, amountKobo } });
   try {

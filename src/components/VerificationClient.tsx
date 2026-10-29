@@ -1,4 +1,5 @@
 'use client';
+import { postUpload } from '@/lib/upload';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/client';
@@ -12,8 +13,8 @@ export default function VerificationClient() {
   async function submit() {
     if (!file) return setErr('Take or choose your selfie first.');
     setErr(''); setBusy(true);
-    const fd = new FormData(); fd.set('selfie', file);
-    const res = await fetch('/api/verification/submit', { method: 'POST', body: fd }), j = await res.json().catch(() => ({}));
+    const { ok, data: j } = await postUpload('/api/verification/submit', file, 'selfie', {}, 'selfie');
+    const res = { ok };
     setBusy(false);
     if (res.ok) { setFile(null); setPreview(''); load(); r.refresh(); } else setErr(j.error ?? 'Upload failed.');
   }

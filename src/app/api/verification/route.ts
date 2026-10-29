@@ -2,7 +2,7 @@ import { randomInt } from 'crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { route, ok, fail } from '@/lib/http';
-import { hit } from '@/lib/ratelimit';
+import { hitDb } from '@/lib/ratelimit';
 import { removeFile } from '@/lib/media';
 
 const latest = (userId: string) => prisma.verification.findFirst({ where: { userId }, orderBy: { createdAt: 'desc' } });
@@ -18,7 +18,7 @@ export const POST = route(async (req, _c, me) => {
   const v = await latest(me.id);
   if (v?.status === 'PENDING') return fail('Your verification is being reviewed.');
   if (v?.status === 'STARTED' && Date.now() - v.createdAt.getTime() < 3600_000) return ok({ code: v.code });
-  if (!hit('ver:' + me.id, 5, 86_400_000)) return fail('Too many attempts today. Try again tomorrow.', 429);
+  if (!(await hitDb('ver:' + me.id, 5, 86_400_000))) return fail('Too many attempts today. Try again tomorrow.', 429);
   const n = await prisma.verification.create({ data: { userId: me.id, code: String(randomInt(1000, 10000)), consentAt: new Date() } });
   return ok({ code: n.code });
 });

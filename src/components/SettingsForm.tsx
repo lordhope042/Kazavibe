@@ -1,4 +1,5 @@
 'use client';
+import { postUpload } from '@/lib/upload';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Avatar from './Avatar';
@@ -25,8 +26,8 @@ export default function SettingsForm({ initial }: { initial: P }) {
   }
   async function photo(file?: File) {
     if (!file) return;
-    const fd = new FormData(); fd.set('file', file);
-    const res = await fetch('/api/me/avatar', { method: 'POST', body: fd }), d = await res.json().catch(() => ({}));
+    const { ok, data: d } = await postUpload('/api/me/avatar', file, 'avatar');
+    const res = { ok };
     setBad(!res.ok); setMsg(res.ok ? 'Photo updated.' : d.error ?? 'Upload failed.'); if (res.ok) { setAvatar(d.avatarUrl + '?' + Date.now()); r.refresh(); }
   }
   async function act(id: string, action: 'approve' | 'decline') { if ((await api(`/api/follow-requests/${id}`, 'POST', { action })).ok) setReqs((l) => l.filter((x) => x.id !== id)); }

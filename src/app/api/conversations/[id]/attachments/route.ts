@@ -2,7 +2,9 @@ import { prisma } from '@/lib/db';
 import { route, ok, fail } from '@/lib/http';
 import { hit } from '@/lib/ratelimit';
 import { blockedBetween } from '@/lib/privacy';
-import { saveUpload } from '@/lib/media';
+import { z } from 'zod';
+import { saveUpload, type Kind } from '@/lib/media';
+import { claimUpload } from '@/lib/uploads';
 import { shapeMsg } from '@/lib/messages';
 import { pushMessage } from '@/lib/push';
 
@@ -18,12 +20,22 @@ export const POST = route(async (req, { params }, me) => {
     if (c.initiatorId !== me.id) return fail('Accept this request to reply.', 403);
     if ((await prisma.message.count({ where: { conversationId: c.id, senderId: me.id } })) >= 1) return fail('Wait for them to accept your request before sending more.', 403);
   }
-  const fd = await req.formData(), file = fd.get('file');
-  if (!(file instanceof File)) return fail('Choose a file.');
-  const voice = fd.get('kind') === 'voice';
-  const { name, kind } = await saveUpload(file, voice ? ['audio'] : ['image', 'video', 'doc']);
-  const dur = voice ? Math.min(300, Math.max(0, parseInt(String(fd.get('durationSec') ?? '0'), 10) || 0)) : null;
-  const fileName = kind === 'doc' ? file.name.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').slice(0, 100) : null;
+  const clean = (n: string) => n.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').slice(0, 100);
+  let name: string, kind: Kind, dur: number | null, fileName: string | null;
+  if (req.headers.get('content-type')?.includes('application/json')) { // already uploaded straight to storage
+    const b = z.object({ name: z.string(), ticket: z.string(), kind: z.string().nullish(), durationSec: z.coerce.number().nullish(), fileName: z.string().max(200).nullish() }).parse(await req.json());
+    const voice = b.kind === 'voice';
+    ({ name, kind } = await claimUpload(me.id, voice ? 'voice' : 'chat', b.name, b.ticket));
+    dur = voice ? Math.min(300, Math.max(0, Math.round(b.durationSec ?? 0))) : null;
+    fileName = kind === 'doc' ? clean(b.fileName ?? 'file') : null;
+  } else {
+    const fd = await req.formData(), file = fd.get('file');
+    if (!(file instanceof File)) return fail('Choose a file.');
+    const voice = fd.get('kind') === 'voice';
+    ({ name, kind } = await saveUpload(file, voice ? ['audio'] : ['image', 'video', 'doc']));
+    dur = voice ? Math.min(300, Math.max(0, parseInt(String(fd.get('durationSec') ?? '0'), 10) || 0)) : null;
+    fileName = kind === 'doc' ? clean(file.name) : null;
+  }
   const m = await prisma.message.create({ data: { conversationId: c.id, senderId: me.id, body: '', kind: KIND[kind], mediaPath: name, fileName, durationSec: dur } });
   await prisma.conversation.update({ where: { id: c.id }, data: { updatedAt: new Date(), ...(c.userAId !== me.id ? { archivedA: false } : { archivedB: false }) } }); // a new message brings the chat out of the recipient's archive
   void pushMessage(c.userAId === me.id ? c.userBId : c.userAId, me.profile!.displayName, m.kind, !c.accepted);

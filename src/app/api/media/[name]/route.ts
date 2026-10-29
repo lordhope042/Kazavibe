@@ -1,10 +1,8 @@
-import fs from 'fs';
-import { stat } from 'fs/promises';
 import path from 'path';
-import { Readable } from 'stream';
 import { prisma } from '@/lib/db';
 import { route, fail } from '@/lib/http';
-import { DIR, DOC_EXT, MIME, NAME_RE } from '@/lib/media';
+import { DOC_EXT, MIME, NAME_RE } from '@/lib/media';
+import { serveObject } from '@/lib/storage';
 import { visibleTo } from '@/lib/posts';
 import { blockedBetween } from '@/lib/privacy';
 import { areMatched, planOf } from '@/lib/plan';
@@ -38,18 +36,8 @@ export const GET = route(async (req, { params }, me) => {
       }
     }
   }
-  const file = path.join(DIR, name);
-  const st = await stat(file).catch(() => null);
-  if (!st) return fail('Not found', 404);
   const h: Record<string, string> = { 'Content-Type': MIME[path.extname(name).slice(1)], 'Accept-Ranges': 'bytes', 'Cache-Control': 'private, max-age=3600', 'X-Content-Type-Options': 'nosniff' };
   if (noStore) h['Cache-Control'] = 'private, no-store';
   if (download && DOC_EXT.includes(path.extname(name).slice(1))) h['Content-Disposition'] = `attachment; filename*=UTF-8''${encodeURIComponent(download)}`;
-  const m = /bytes=(\d*)-(\d*)/.exec(req.headers.get('range') ?? '');
-  if (m) {
-    let start = m[1] ? +m[1] : 0, end = m[2] ? +m[2] : st.size - 1;
-    if (!m[1] && m[2]) { start = Math.max(0, st.size - +m[2]); end = st.size - 1; }
-    if (start > end || end >= st.size) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${st.size}` } });
-    return new Response(Readable.toWeb(fs.createReadStream(file, { start, end })) as any, { status: 206, headers: { ...h, 'Content-Range': `bytes ${start}-${end}/${st.size}`, 'Content-Length': String(end - start + 1) } });
-  }
-  return new Response(Readable.toWeb(fs.createReadStream(file)) as any, { headers: { ...h, 'Content-Length': String(st.size) } });
+  return serveObject(name, req.headers.get('range'), h);
 });

@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, ago } from '@/lib/client';
 
-const TABS = ['Overview', 'Reports', 'Users', 'Payments', 'Verification', 'Audit log'] as const;
+const TABS = ['Overview', 'Reports', 'Feedback', 'Users', 'Payments', 'Verification', 'Audit log'] as const;
 export default function AdminClient({ role }: { role: string }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>('Overview'), [data, setData] = useState<any>(null), [q, setQ] = useState(''), [status, setStatus] = useState(''), [err, setErr] = useState('');
   const load = useCallback(async () => {
-    const url = { Overview: '/api/admin/overview', Reports: '/api/admin/reports', Users: `/api/admin/users?q=${encodeURIComponent(q)}`, Payments: `/api/admin/payments?status=${status}`, Verification: '/api/admin/verifications', 'Audit log': '/api/admin/audit' }[tab];
+    const url = { Overview: '/api/admin/overview', Reports: '/api/admin/reports', Feedback: '/api/admin/feedback?all=1', Users: `/api/admin/users?q=${encodeURIComponent(q)}`, Payments: `/api/admin/payments?status=${status}`, Verification: '/api/admin/verifications', 'Audit log': '/api/admin/audit' }[tab];
     const x = await api(url); setData(x.ok ? x.data : null); setErr(x.ok ? '' : (x.data as any).error ?? 'Could not load.');
   }, [tab, q, status]);
   useEffect(() => { setData(null); const t = setTimeout(load, tab === 'Users' ? 250 : 0); return () => clearTimeout(t); }, [load, tab]);
@@ -37,6 +37,11 @@ export default function AdminClient({ role }: { role: string }) {
             <div className="mt-3 flex flex-wrap gap-2"><button className="btn-ghost btn-sm" onClick={() => reportAct(r.id, 'dismiss')}>Dismiss</button><button className="btn-ghost btn-sm" onClick={() => reportAct(r.id, 'resolve')}>Resolve</button>
               {r.targetType === 'POST' && <button className="btn btn-sm" onClick={() => reportAct(r.id, 'remove_content')}>Remove post</button>}
               {role === 'ADMIN' && <button className="btn-ghost btn-sm !text-danger" onClick={() => reportAct(r.id, 'suspend_user')}>Suspend account</button>}</div></li>))}</ul>
+      ) : tab === 'Feedback' ? (data.length === 0 ? <div className="card p-8 text-center text-soft">No feedback yet.</div> :
+        <ul className="space-y-2">{data.map((f: any) => <li key={f.id} className={`card p-4 ${f.handled ? 'opacity-60' : ''}`}>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted"><b className="text-fg">{f.displayName ?? 'Member'}</b> @{f.username} · {f.category}{f.rating ? ` · ${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}` : ''} · {ago(f.createdAt)} ago</div>
+          <p className="mt-2 whitespace-pre-wrap text-sm">{f.message}</p>
+          <button className="btn-ghost btn-sm mt-3" onClick={async () => { await api(`/api/admin/feedback/${f.id}`, 'POST', { handled: !f.handled }); load(); }}>{f.handled ? 'Mark as new' : 'Mark as read'}</button></li>)}</ul>
       ) : tab === 'Users' ? (<>
         <input className="inp mb-3" placeholder="Search username or name" aria-label="Search users" value={q} onChange={(e) => setQ(e.target.value)} />
         <ul className="space-y-2">{data.map((u: any) => <li key={u.id} className="card flex flex-wrap items-center gap-3 p-3"><div className="min-w-0 flex-1 text-sm"><b>{u.displayName}</b> <span className="text-muted">@{u.username} · {u.area}</span><p className="text-xs text-muted">{u.role} · {u.status} · {u.plan} · joined {ago(u.createdAt)} ago</p></div>

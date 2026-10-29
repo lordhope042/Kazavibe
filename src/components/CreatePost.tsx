@@ -1,4 +1,5 @@
 'use client';
+import { postUpload } from '@/lib/upload';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -21,12 +22,11 @@ export default function CreatePost({ open, onClose }: { open: boolean; onClose: 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!file) return setErr('Choose a photo or video first.');
-    const fd = new FormData(e.currentTarget);
-    fd.set('file', file);
+    const f = new FormData(e.currentTarget);
     setBusy(true);
-    const res = await fetch('/api/posts', { method: 'POST', body: fd });
+    const { ok, data } = await postUpload('/api/posts', file, 'post', { caption: f.get('caption'), audience: f.get('audience') });
     setBusy(false);
-    if (!res.ok) return setErr((await res.json().catch(() => ({}))).error ?? 'Upload failed. Try again.');
+    if (!ok) return setErr(data.error ?? 'Upload failed. Try again.');
     reset(); onClose(); window.dispatchEvent(new Event('kv:posted')); r.refresh();
   }
   if (!open) return null;
