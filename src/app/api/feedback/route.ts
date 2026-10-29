@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { route, ok, fail } from '@/lib/http';
 import { hitDb } from '@/lib/ratelimit';
 
-export const FEEDBACK_CATEGORIES = ['Suggestion', 'Bug or problem', 'New feature idea', 'Something I like', 'Other'] as const;
+const FEEDBACK_CATEGORIES  = ['Suggestion', 'Bug or problem', 'New feature idea', 'Something I like', 'Other'] as const;
 const S = z.object({
   category: z.enum(FEEDBACK_CATEGORIES),
   message: z.string().trim().min(10, 'Please write at least a few words (10 characters).').max(2000, 'Please keep it under 2000 characters.'),
