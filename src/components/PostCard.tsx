@@ -5,13 +5,14 @@ import Avatar from './Avatar';
 import Comments from './Comments';
 import FollowButton from './FollowButton';
 import { api, ago } from '@/lib/client';
+import { tap } from '@/lib/haptic';
 import { REPORT_CATEGORIES } from '@/lib/areas';
 
 export type PostT = { id: string; kind: 'PHOTO' | 'CLIP'; mediaUrl: string; caption: string; audience: string; createdAt: string; mine: boolean; following: boolean; likes: number; comments: number; liked: boolean; saved: boolean; author: { username: string; displayName: string; avatarUrl: string | null; verified: boolean } };
 
 export default function PostCard({ post, onDeleted }: { post: PostT; onDeleted: (id: string) => void }) {
   const [p, setP] = useState(post), [open, setOpen] = useState(false), [msg, setMsg] = useState('');
-  async function like() { const nx = !p.liked; setP({ ...p, liked: nx, likes: p.likes + (nx ? 1 : -1) }); const x = await api(`/api/posts/${p.id}/like`, nx ? 'POST' : 'DELETE'); if (!x.ok) setP(p); }
+  async function like() { tap(); const nx = !p.liked; setP({ ...p, liked: nx, likes: p.likes + (nx ? 1 : -1) }); const x = await api(`/api/posts/${p.id}/like`, nx ? 'POST' : 'DELETE'); if (!x.ok) setP(p); }
   async function save() { const nx = !p.saved; setP({ ...p, saved: nx }); const x = await api(`/api/posts/${p.id}/save`, nx ? 'POST' : 'DELETE'); if (!x.ok) setP(p); }
   async function del() { if (confirm('Delete this post permanently?') && (await api(`/api/posts/${p.id}`, 'DELETE')).ok) onDeleted(p.id); }
   async function report(category: string) { if (!category) return; const x = await api('/api/reports', 'POST', { postId: p.id, category }); setMsg(x.ok ? 'Report sent. Thank you.' : x.data.error ?? 'Could not send report.'); }

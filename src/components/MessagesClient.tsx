@@ -113,6 +113,7 @@ export default function MessagesClient({ startWith }: { startWith?: string }) {
     return () => { on = false; clearInterval(t); cancelled.current = true; if (recorder.current && recorder.current.state !== 'inactive') recorder.current.stop(); };
   }, [cur]);
   useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [msgs.length]);
+  useEffect(() => { document.documentElement.dataset.chat = cur ? '1' : ''; return () => { delete document.documentElement.dataset.chat; }; }, [cur]); // phones: an open chat hides the app bars
 
   async function send(e: React.FormEvent) {
     e.preventDefault(); if (!text.trim() || !cur) return; setErr('');
@@ -184,7 +185,7 @@ export default function MessagesClient({ startWith }: { startWith?: string }) {
   const jumpToPin = () => { const el = pins[0] && document.getElementById(`m-${pins[0].id}`); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
 
   return (
-    <div className="card mx-auto grid h-[calc(100dvh-9rem)] max-w-5xl overflow-hidden sm:h-[calc(100dvh-8rem)] md:grid-cols-[340px_1fr]">
+    <div className="kv-msgs card mx-auto grid max-w-5xl overflow-hidden md:h-[calc(100dvh-8rem)] md:grid-cols-[340px_1fr]">
       <aside className={`${cur ? 'hidden md:flex' : 'flex'} min-h-0 flex-col border-r border-line`}>
         <div className="p-4 pb-2"><h1 className="text-lg font-black">Messages</h1>
           <div className="mt-2 flex flex-wrap gap-2"><button className={`chip ${tab === 'all' ? 'chip-on' : ''}`} onClick={() => setTab('all')}>All</button><button className={`chip ${tab === 'req' ? 'chip-on' : ''}`} onClick={() => setTab('req')}>Requests{reqCount > 0 && ` (${reqCount})`}</button><button className={`chip ${tab === 'arch' ? 'chip-on' : ''}`} onClick={() => setTab('arch')}><i className="fa-solid fa-box-archive mr-1" />Archived{archCount > 0 && ` (${archCount})`}</button></div>

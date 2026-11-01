@@ -27,6 +27,7 @@ export const EN = {
   company: 'Company', legal: 'Legal', support: 'Support', about: 'About KazaVibe', safety_centre: 'Safety Centre', guidelines: 'Community Guidelines', privacy: 'Privacy Policy', terms: 'Terms of Service', help: 'Help Centre',
   tagline: 'Your People. Your Vibe. Your Community.', made_in: 'Made in Kazaure, Jigawa State, Nigeria',
   footer_note: "KazaVibe is for adults aged 18 and over. A verified badge does not guarantee a person's honesty or safety.",
+  notifications: 'Notifications', plus: 'KazaVibe Plus', verification: 'Verification', profile: 'Profile',
   short_about: 'About', short_safety: 'Safety', short_guidelines: 'Guidelines', short_privacy: 'Privacy', short_terms: 'Terms', short_help: 'Help',
 } as const;
 
@@ -59,6 +60,7 @@ export const HA: Partial<Record<keyof typeof EN, string>> = {
   company: 'Kamfani', legal: 'Doka', support: 'Taimako', about: 'Game da KazaVibe', safety_centre: 'Cibiyar Tsaro', guidelines: 'Ƙa’idojin Al’umma', privacy: 'Manufar Sirri', terms: 'Sharuɗɗan Amfani', help: 'Cibiyar Taimako',
   tagline: 'Mutanenku. Salonku. Al’ummarku.', made_in: 'An yi shi a Kazaure, Jihar Jigawa, Najeriya',
   footer_note: 'KazaVibe na manya ne masu shekara 18 zuwa sama. Alamar tabbatarwa ba ta tabbatar da gaskiya ko amincin mutum ba.',
+  notifications: 'Sanarwa', verification: 'Tabbatarwa', profile: 'Shafi',
   short_about: 'Game da mu', short_safety: 'Tsaro', short_guidelines: 'Ƙa’idoji', short_privacy: 'Sirri', short_terms: 'Sharuɗɗa', short_help: 'Taimako',
 };
 export const tr = (lang: Lang, key: keyof typeof EN): string => (lang === 'ha' ? HA[key] : undefined) ?? EN[key];

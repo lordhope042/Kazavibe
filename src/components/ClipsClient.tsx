@@ -49,7 +49,7 @@ export default function ClipsClient() {
       <div className="mb-3 flex justify-center gap-2">
         {([['clips-following', 'Following'], ['clips', 'Discover']] as const).map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`chip ${tab === k ? 'chip-on' : ''}`}>{l}</button>)}
       </div>
-      <div className="no-scrollbar h-[calc(100dvh-11rem)] snap-y snap-mandatory space-y-3 overflow-y-auto">
+      <div className="no-scrollbar h-[calc(100dvh-12.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] snap-y snap-mandatory space-y-3 overflow-y-auto sm:h-[calc(100dvh-11rem)]">
         {items === null ? <p className="text-center text-muted">Loading…</p> : items.length === 0 ? <div className="card p-8 text-center text-soft">{tab === 'clips-following' ? 'No clips from people you follow yet. Try the Discover tab.' : 'No clips yet. Be the first to post one.'}</div> :
           <>{items.map((c) => <div key={c.id} className="h-full snap-start"><Clip c={c} muted={muted} setMuted={setMuted} /></div>)}
             {next && <button className="btn-ghost mx-auto block" onClick={() => load(next)}>Load more</button>}</>}

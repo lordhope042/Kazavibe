@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import PostCard, { type PostT } from './PostCard';
 import { api } from '@/lib/client';
+import { PostSkeleton } from './Skeleton';
 
 export default function Feed({ feed, username, empty }: { feed: string; username?: string; empty?: React.ReactNode }) {
   const [items, setItems] = useState<PostT[] | null>(null), [next, setNext] = useState<string | null>(null), [busy, setBusy] = useState(false), [err, setErr] = useState('');
@@ -15,7 +16,7 @@ export default function Feed({ feed, username, empty }: { feed: string; username
     setErr(''); setNext(x.data.next); setItems((cur) => (cursor && cur ? [...cur, ...x.data.items] : x.data.items));
   }, [feed, username]);
   useEffect(() => { load(); const h = () => load(); window.addEventListener('kv:posted', h); return () => window.removeEventListener('kv:posted', h); }, [load]);
-  if (items === null) return <p className="text-muted">{err || 'Loading…'}</p>;
+  if (items === null) return err ? <p className="text-danger">{err}</p> : <div className="space-y-6"><PostSkeleton /><PostSkeleton /></div>;
   if (!items.length) return <div className="card p-8 text-center text-soft">{empty ?? <>Nothing here yet. <Link href="/discover" className="text-brand-500 underline">Find people to follow</Link>.</>}</div>;
   return (
     <div className="space-y-6">

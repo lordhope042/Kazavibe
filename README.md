@@ -25,6 +25,9 @@ Discover · Nearby (by area, with pause switch) · Messages (requests, accept/de
 - Loader: a slim top progress bar (no full-screen overlay) plus a small non-blocking pill for uploads.
 - Run `npx prisma migrate dev --name chat_media_replies` after updating.
 
+## App-style UI (phones, installed app, APK)
+- Mobile shell: compact top bar with page title and back arrow, bottom tab bar with active indicator and unread badge, centre Post button, safe-area padding for notches, full-screen chats (bars hide while a chat is open), pull-to-refresh on Home, skeleton loaders, page fade-in, vibration on taps (Android), install banner on phone browsers, long-press app-icon shortcuts. The installed app opens at `/home` (signed-out people land on login). Desktop layout is unchanged.
+
 ## Deploying
 - Vercel route: `DEPLOY-VERCEL.md` (uploads go straight to Supabase, rate limits for logins/codes/SMS live in the database, polling pauses in background tabs).
 - Free-tier route: `DEPLOY-RAILWAY.md` (Supabase database + private media bucket, GitHub, Railway). Set `STORAGE_DRIVER=supabase` anywhere the disk is temporary.

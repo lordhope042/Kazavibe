@@ -5,6 +5,7 @@ import Avatar from './Avatar';
 import FollowButton, { type FollowState } from './FollowButton';
 import { AREAS } from '@/lib/areas';
 import { api } from '@/lib/client';
+import { RowSkeleton } from './Skeleton';
 
 type Row = { username: string; displayName: string; area: string; verified: boolean; bio: string; state: FollowState; avatarUrl: string | null; sameArea: boolean };
 
@@ -23,6 +24,7 @@ export default function DiscoverClient({ mode, initialQ = '', initialArea = '', 
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-black">{mode === 'nearby' ? 'People Nearby' : 'Discover People'}</h1>
       <p className="mb-4 text-sm text-muted">{mode === 'nearby' ? 'Based on the area you chose, never your exact location.' : 'Find friends and creators around Kazaure.'}</p>
+      <div className="mb-4 flex gap-2"><Link href="/discover" className={`chip ${mode === 'discover' ? 'chip-on' : ''}`}>People</Link><Link href="/nearby" className={`chip ${mode === 'nearby' ? 'chip-on' : ''}`}>Nearby</Link></div>
       {mode === 'nearby' && <div className="card mb-4 flex items-center gap-3 p-4"><i className="fa-solid fa-location-dot text-brand-500" /><div className="flex-1 text-sm"><b>Show me in Nearby</b><p className="text-xs text-muted">Turn off to hide yourself and pause nearby discovery.</p></div>
         <button role="switch" aria-checked={!off} aria-label="Show me in Nearby" onClick={togglePause} className={`relative h-6 w-11 rounded-full border border-line transition ${off ? 'bg-input' : 'bg-brand-600'}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${off ? 'left-0.5' : 'left-5'}`} /></button></div>}
       <div className="flex gap-2">
@@ -31,7 +33,7 @@ export default function DiscoverClient({ mode, initialQ = '', initialArea = '', 
       </div>
       <p role="alert" className="mt-3 text-sm text-danger">{err}</p>
       {mode === 'nearby' && off ? <p className="mt-6 text-soft">Nearby is paused. Switch it on to see people in your area.</p>
-        : rows === null ? <p className="mt-6 text-muted">Loading…</p> : rows.length === 0 ? <p className="mt-6 text-soft">No members found. Try another search or area, or invite friends to join.</p> : (
+        : rows === null ? <div className="mt-4 grid gap-3 sm:grid-cols-2"><RowSkeleton /><RowSkeleton /><RowSkeleton /><RowSkeleton /></div> : rows.length === 0 ? <p className="mt-6 text-soft">No members found. Try another search or area, or invite friends to join.</p> : (
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {rows.map((r) => (
             <li key={r.username} className="card flex items-center gap-3 p-3">

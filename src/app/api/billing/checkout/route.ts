@@ -4,10 +4,8 @@ import { prisma } from '@/lib/db';
 import { route, ok, fail } from '@/lib/http';
 import { hitDb } from '@/lib/ratelimit';
 import { initializeTransaction, planById } from '@/lib/billing';
-import { plusFreeNow } from '@/lib/plan';
 
 export const POST = route(async (req, _c, me) => {
-  if (plusFreeNow()) return fail('KazaVibe Plus is free for everyone right now. No payment needed.');
   const { planId } = z.object({ planId: z.string() }).parse(await req.json());
   const plan = planById(planId);
   if (!plan) return fail('Unknown plan.');
