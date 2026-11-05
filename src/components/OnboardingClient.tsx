@@ -29,7 +29,7 @@ export default function OnboardingClient({ name, avatarUrl, area }: { name: stri
   }
   const toggle = (i: string) => setInts((l) => (l.includes(i) ? l.filter((x) => x !== i) : l.length < 10 ? [...l, i] : l));
   return (
-    <main className="card mx-auto my-8 max-w-md p-6">
+    <main className="card mx-auto my-8 max-sm:my-0 max-sm:min-h-dvh max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent max-sm:pt-[calc(2rem+env(safe-area-inset-top))] max-w-md p-6">
       <div className="mb-4 text-center"><Logo /></div>
       <ol className="mb-5 flex gap-1.5" aria-label="Progress">{STEPS.map((s, i) => <li key={s} className={`h-1.5 flex-1 rounded-full ${i <= step ? 'bg-brand-600' : 'bg-input'}`} aria-current={i === step ? 'step' : undefined} title={s} />)}</ol>
       <h1 className="text-xl font-black">{['Add a profile photo', 'Tell us about you', 'Where in Kazaure are you?', 'Your privacy', 'Verification'][step]}</h1>

@@ -10,7 +10,7 @@ export const GET = route(async (req, _c, me) => {
   const limit = Math.min(Number(u.searchParams.get('limit')) || 40, 60);
   const rows = await prisma.profile.findMany({
     where: {
-      userId: { not: me.id }, ...(nearby ? { locationPaused: false } : {}),
+      userId: { not: me.id }, ...(nearby ? { locationPaused: false } : {}), ...(u.searchParams.get('verified') === '1' ? { verified: true } : {}),
       user: { status: 'ACTIVE', blockedBy: { none: { blockerId: me.id } }, blocking: { none: { blockedId: me.id } } },
       ...((AREAS as readonly string[]).includes(area) ? { area } : {}),
       ...(q ? { OR: [{ username: { contains: q, mode: 'insensitive' } }, { displayName: { contains: q, mode: 'insensitive' } }] } : {}),

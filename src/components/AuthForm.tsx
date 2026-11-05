@@ -23,7 +23,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'register' }) {
     else setErr((await res.json().catch(() => ({}))).error ?? 'Something went wrong.');
   }
   return (
-    <main className="card mx-auto my-8 max-w-sm p-6">
+    <main className="card mx-auto my-8 max-sm:my-0 max-sm:min-h-dvh max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent max-sm:pt-[calc(2rem+env(safe-area-inset-top))] max-w-sm p-6">
       <div className="text-center"><Link href="/"><Logo /></Link></div>
       <h1 className="mt-6 text-center text-2xl font-bold">{reg ? t('create_your_account') : t('welcome_back')}</h1>
       <p className="text-center text-sm text-muted">{reg ? t('join_sub') : t('login_sub')}</p>

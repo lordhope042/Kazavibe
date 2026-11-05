@@ -21,7 +21,7 @@ export default function VerifyEmail({ masked }: { masked: string }) {
   }
   async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); r.push('/register'); r.refresh(); }
   return (
-    <main className="card mx-auto my-8 max-w-sm p-6 text-center">
+    <main className="card mx-auto my-8 max-sm:my-0 max-sm:min-h-dvh max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent max-sm:pt-[calc(2rem+env(safe-area-inset-top))] max-w-sm p-6 text-center">
       <Logo />
       <i className="fa-regular fa-envelope mt-5 text-3xl text-brand-500" />
       <h1 className="mt-2 text-xl font-black">Check your email</h1>

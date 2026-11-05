@@ -25,6 +25,11 @@ Discover · Nearby (by area, with pause switch) · Messages (requests, accept/de
 - Loader: a slim top progress bar (no full-screen overlay) plus a small non-blocking pill for uploads.
 - Run `npx prisma migrate dev --name chat_media_replies` after updating.
 
+## Phone app screens vs website
+Screens switch on width: under 768 px (phones, installed app, APK) you get the app screens; wider (desktop, tablet) keeps the website layout. The first paint uses the phone browser's User-Agent so there is no flash. Preview on desktop by narrowing the browser window or using DevTools device mode.
+- Phone-only screens: Home (people row + edge-to-edge posts, comments in a bottom sheet), Clips (full screen), Discover/Nearby (search, filter chips, photo grid), Connect (drag-to-swipe cards), Profile (cover, stats, tabs, 3-column post grid), Notifications (filters, Today/Earlier), Menu (avatar opens it), full-screen sign-in and onboarding, splash screen when launched as an app.
+- New for both: followers/following lists (`/profile/<name>/connections`, `GET /api/users/<name>/connections`, hidden for private profiles unless you follow them).
+
 ## App-style UI (phones, installed app, APK)
 - Mobile shell: compact top bar with page title and back arrow, bottom tab bar with active indicator and unread badge, centre Post button, safe-area padding for notches, full-screen chats (bars hide while a chat is open), pull-to-refresh on Home, skeleton loaders, page fade-in, vibration on taps (Android), install banner on phone browsers, long-press app-icon shortcuts. The installed app opens at `/home` (signed-out people land on login). Desktop layout is unchanged.
 

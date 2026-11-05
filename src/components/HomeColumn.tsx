@@ -2,10 +2,13 @@
 import ComposeBar from './ComposeBar';
 import Feed from './Feed';
 import PullToRefresh from './PullToRefresh';
+import StoryRow from './StoryRow';
+import { useAppUI } from './AppUI';
 export default function HomeColumn() {
+  const app = useAppUI();
   return (
     <PullToRefresh onRefresh={async () => { window.dispatchEvent(new Event('kv:posted')); await new Promise((r) => setTimeout(r, 700)); }}>
-      <div className="space-y-6"><ComposeBar /><Feed feed="home" /></div>
+      {app ? <><StoryRow /><Feed feed="home" /></> : <div className="space-y-6"><ComposeBar /><Feed feed="home" /></div>}
     </PullToRefresh>
   );
 }

@@ -4,8 +4,10 @@ import Link from 'next/link';
 import PostCard, { type PostT } from './PostCard';
 import { api } from '@/lib/client';
 import { PostSkeleton } from './Skeleton';
+import { useAppUI } from './AppUI';
 
 export default function Feed({ feed, username, empty }: { feed: string; username?: string; empty?: React.ReactNode }) {
+  const app = useAppUI();
   const [items, setItems] = useState<PostT[] | null>(null), [next, setNext] = useState<string | null>(null), [busy, setBusy] = useState(false), [err, setErr] = useState('');
   const load = useCallback(async (cursor?: string) => {
     setBusy(true);
@@ -19,7 +21,7 @@ export default function Feed({ feed, username, empty }: { feed: string; username
   if (items === null) return err ? <p className="text-danger">{err}</p> : <div className="space-y-6"><PostSkeleton /><PostSkeleton /></div>;
   if (!items.length) return <div className="card p-8 text-center text-soft">{empty ?? <>Nothing here yet. <Link href="/discover" className="text-brand-500 underline">Find people to follow</Link>.</>}</div>;
   return (
-    <div className="space-y-6">
+    <div className={app ? 'space-y-2' : 'space-y-6'}>
       {items.map((p) => <PostCard key={p.id} post={p} onDeleted={(id) => setItems((l) => l!.filter((x) => x.id !== id))} />)}
       {next && <button className="btn-ghost mx-auto block" disabled={busy} onClick={() => load(next)}>{busy ? 'Loading…' : 'Load more'}</button>}
       <p role="alert" className="text-center text-sm text-danger">{err}</p>

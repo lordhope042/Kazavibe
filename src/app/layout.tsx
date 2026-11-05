@@ -1,9 +1,12 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { headers } from 'next/headers';
 import GlobalSpinner from '@/components/GlobalSpinner';
 import PwaBoot from '@/components/PwaBoot';
 import AppMode from '@/components/AppMode';
+import SplashScreen from '@/components/SplashScreen';
+import { AppUIProvider } from '@/components/AppUI';
 import { LangProvider } from '@/components/LangProvider';
 import { getLang } from '@/lib/lang';
 
@@ -17,13 +20,13 @@ export const viewport: Viewport = {
   themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#0A0D14' }, { media: '(prefers-color-scheme: light)', color: '#F5F5F8' }],
 };
 export default function Root({ children }: { children: React.ReactNode }) {
-  const lang = getLang();
+  const lang = getLang(), phone = /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(headers().get('user-agent') ?? '');
   return (
     <html lang={lang} suppressHydrationWarning>
       <head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></head>
       <body className={`${inter.className} min-h-dvh bg-bg text-fg antialiased`}>
-        <LangProvider lang={lang}>{children}</LangProvider>
-        <GlobalSpinner /><PwaBoot /><AppMode />
+        <LangProvider lang={lang}><AppUIProvider initial={phone}>{children}</AppUIProvider></LangProvider>
+        <GlobalSpinner /><PwaBoot /><AppMode /><SplashScreen />
       </body>
     </html>
   );

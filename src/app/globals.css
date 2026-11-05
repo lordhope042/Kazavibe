@@ -51,3 +51,7 @@ a,button,summary,label,[role=button],[role=slider]{touch-action:manipulation}
   html[data-chat="1"] .kv-main{padding:env(safe-area-inset-top) 0 0}
   html[data-chat="1"] .kv-msgs{height:100dvh;border-radius:0;border:0}
 }
+@media (max-width:767px){
+  html[data-screen="clips"] .kv-header{display:none}
+  html[data-screen="clips"] .kv-main{padding:0}
+}

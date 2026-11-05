@@ -24,7 +24,7 @@ export default function ForgotPassword() {
     if (x.ok) { setStep('done'); setTimeout(() => r.push('/login'), 2500); } else setErr(x.data.error ?? 'Could not reset password.');
   }
   return (
-    <main className="card mx-auto my-8 max-w-sm p-6">
+    <main className="card mx-auto my-8 max-sm:my-0 max-sm:min-h-dvh max-sm:rounded-none max-sm:border-0 max-sm:bg-transparent max-sm:pt-[calc(2rem+env(safe-area-inset-top))] max-w-sm p-6">
       <div className="text-center"><Link href="/"><Logo /></Link></div>
       {step === 'email' && (<form onSubmit={send} noValidate>
         <h1 className="mt-6 text-center text-2xl font-bold">Forgot password?</h1>

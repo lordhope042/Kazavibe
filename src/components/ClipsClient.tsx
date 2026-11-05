@@ -4,9 +4,10 @@ import Link from 'next/link';
 import Comments from './Comments';
 import FollowButton from './FollowButton';
 import { api } from '@/lib/client';
+import { useAppUI } from './AppUI';
 import type { PostT } from './PostCard';
 
-function Clip({ c, muted, setMuted }: { c: PostT; muted: boolean; setMuted: (m: boolean) => void }) {
+function Clip({ c, muted, setMuted, app }: { c: PostT; muted: boolean; setMuted: (m: boolean) => void; app?: boolean }) {
   const box = useRef<HTMLElement>(null), vid = useRef<HTMLVideoElement>(null);
   const [p, setP] = useState(c), [cm, setCm] = useState(false);
   useEffect(() => {
@@ -19,9 +20,9 @@ function Clip({ c, muted, setMuted }: { c: PostT; muted: boolean; setMuted: (m: 
   const Btn = ({ on, ic, n, label, f }: { on?: boolean; ic: string; n?: number | string; label: string; f: () => void }) =>
     <button onClick={f} aria-label={label} aria-pressed={on} className={`flex flex-col items-center text-xs ${on ? 'text-brand-500' : 'text-white'}`}><i className={`${on ? 'fa-solid' : 'fa-regular'} ${ic} text-2xl drop-shadow`} />{n}</button>;
   return (
-    <section ref={box} className="relative h-full snap-start overflow-hidden rounded-3xl bg-black">
+    <section ref={box} className={`relative h-full snap-start overflow-hidden bg-black ${app ? '' : 'rounded-3xl'}`}>
       <video ref={vid} src={p.mediaUrl} loop playsInline muted={muted} preload="metadata" onClick={(e) => { const v = e.currentTarget; v.paused ? v.play() : v.pause(); }} className="h-full w-full object-cover" />
-      <div className="absolute right-3 bottom-24 flex flex-col items-center gap-5">
+      <div className={`absolute right-3 flex flex-col items-center gap-5 ${app ? 'bottom-8' : 'bottom-24'}`}>
         <Btn on={p.liked} ic="fa-heart" n={p.likes} label="Like" f={like} />
         <Btn ic="fa-comment" n={p.comments} label="Comments" f={() => setCm(true)} />
         <Btn on={p.saved} ic="fa-bookmark" label="Save" f={save} />
@@ -37,6 +38,7 @@ function Clip({ c, muted, setMuted }: { c: PostT; muted: boolean; setMuted: (m: 
 }
 
 export default function ClipsClient() {
+  const app = useAppUI();
   const [tab, setTab] = useState<'clips-following' | 'clips'>('clips-following'), [items, setItems] = useState<PostT[] | null>(null), [next, setNext] = useState<string | null>(null), [muted, setMuted] = useState(true);
   const load = useCallback(async (cursor?: string) => {
     const x = await api<{ items: PostT[]; next: string | null }>(`/api/posts?feed=${tab}${cursor ? `&cursor=${cursor}` : ''}`);
@@ -44,14 +46,15 @@ export default function ClipsClient() {
     setNext(x.data.next); setItems((cur) => (cursor && cur ? [...cur, ...x.data.items] : x.data.items));
   }, [tab]);
   useEffect(() => { setItems(null); load(); }, [load]);
+  useEffect(() => { if (!app) return; document.documentElement.dataset.screen = 'clips'; return () => { delete document.documentElement.dataset.screen; }; }, [app]); // phones: Clips is full screen, the top bar hides
   return (
-    <div className="mx-auto max-w-md">
-      <div className="mb-3 flex justify-center gap-2">
+    <div className={app ? 'fixed inset-x-0 top-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 bg-black' : 'mx-auto max-w-md'}>
+      <div className={app ? 'absolute inset-x-0 top-0 z-10 flex justify-center gap-2 bg-gradient-to-b from-black/60 to-transparent pb-6 pt-[calc(0.75rem+env(safe-area-inset-top))]' : 'mb-3 flex justify-center gap-2'}>
         {([['clips-following', 'Following'], ['clips', 'Discover']] as const).map(([k, l]) => <button key={k} onClick={() => setTab(k)} className={`chip ${tab === k ? 'chip-on' : ''}`}>{l}</button>)}
       </div>
-      <div className="no-scrollbar h-[calc(100dvh-12.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] snap-y snap-mandatory space-y-3 overflow-y-auto sm:h-[calc(100dvh-11rem)]">
-        {items === null ? <p className="text-center text-muted">Loading…</p> : items.length === 0 ? <div className="card p-8 text-center text-soft">{tab === 'clips-following' ? 'No clips from people you follow yet. Try the Discover tab.' : 'No clips yet. Be the first to post one.'}</div> :
-          <>{items.map((c) => <div key={c.id} className="h-full snap-start"><Clip c={c} muted={muted} setMuted={setMuted} /></div>)}
+      <div className={`no-scrollbar snap-y snap-mandatory overflow-y-auto ${app ? 'h-full' : 'h-[calc(100dvh-12.5rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] space-y-3 sm:h-[calc(100dvh-11rem)]'}`}>
+        {items === null ? <p className={`text-center text-muted ${app ? 'pt-28' : ''}`}>Loading…</p> : items.length === 0 ? <div className={`card p-8 text-center text-soft ${app ? 'mx-4 mt-24' : ''}`}>{tab === 'clips-following' ? 'No clips from people you follow yet. Try the Discover tab.' : 'No clips yet. Be the first to post one.'}</div> :
+          <>{items.map((c) => <div key={c.id} className="h-full snap-start"><Clip c={c} muted={muted} setMuted={setMuted} app={app} /></div>)}
             {next && <button className="btn-ghost mx-auto block" onClick={() => load(next)}>Load more</button>}</>}
       </div>
     </div>

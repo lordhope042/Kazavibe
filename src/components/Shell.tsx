@@ -16,7 +16,7 @@ import { tap } from '@/lib/haptic';
 type Me = { username: string; displayName: string; avatarUrl: string | null; staff: boolean };
 const NAV = [['/home', 'nav_home', 'fa-house'], ['/clips', 'nav_clips', 'fa-film'], ['/discover', 'nav_discover', 'fa-compass'], ['/connect', 'nav_connect', 'fa-heart'], ['/nearby', 'nav_nearby', 'fa-location-arrow'], ['/messages', 'nav_messages', 'fa-comments']];
 const ROOTS = NAV.map((n) => n[0]); // top-level screens: no back arrow
-const TITLES: [string, string][] = [...NAV.map((n): [string, string] => [n[0], n[1]]), ['/notifications', 'notifications'], ['/settings', 'settings'], ['/plus', 'plus'], ['/billing', 'plus'], ['/verification', 'verification'], ['/admin', 'nav_dashboard'], ['/profile', 'profile']];
+const TITLES: [string, string][] = [...NAV.map((n): [string, string] => [n[0], n[1]]), ['/notifications', 'notifications'], ['/settings', 'settings'], ['/plus', 'plus'], ['/billing', 'plus'], ['/verification', 'verification'], ['/admin', 'nav_dashboard'], ['/profile', 'profile'], ['/menu', 'menu']];
 const BOTTOM = [NAV[0], NAV[1], null, NAV[3], NAV[5]];
 
 export default function Shell({ me, children }: { me: Me; children: React.ReactNode }) {
@@ -57,7 +57,8 @@ export default function Shell({ me, children }: { me: Me; children: React.ReactN
             <Link href="/notifications" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} className="relative grid h-10 w-10 place-items-center rounded-full text-muted hover:bg-hover hover:text-fg">
               <i className="fa-regular fa-bell text-lg" />{badge(unread, 'absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center px-1 text-[10px]')}
             </Link>
-            <details className="relative" key={path}>
+            <Link href="/menu" aria-label="Menu" className="grid h-10 w-10 place-items-center sm:hidden"><Avatar src={me.avatarUrl} name={me.displayName} size={32} /></Link>
+            <details className="relative hidden sm:block" key={path}>
               <summary className="grid h-10 w-10 cursor-pointer list-none place-items-center" aria-label="Account menu"><Avatar src={me.avatarUrl} name={me.displayName} size={32} /></summary>
               <div className="card absolute right-0 mt-2 w-52 space-y-1 p-2 text-sm shadow-xl">
                 <Link className="block rounded-xl px-3 py-2.5 hover:bg-hover" href={`/profile/${me.username}`}>{t('my_profile')}</Link>
