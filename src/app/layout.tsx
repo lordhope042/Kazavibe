@@ -23,7 +23,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
   const lang = getLang(), phone = /iPhone|iPod|Android.*Mobile|Windows Phone/i.test(headers().get('user-agent') ?? '');
   return (
     <html lang={lang} suppressHydrationWarning>
-      <head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></head>
+      <head>
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+      </head>
       <body className={`${inter.className} min-h-dvh bg-bg text-fg antialiased`}>
         <LangProvider lang={lang}><AppUIProvider initial={phone}>{children}</AppUIProvider></LangProvider>
         <GlobalSpinner /><PwaBoot /><AppMode /><SplashScreen />

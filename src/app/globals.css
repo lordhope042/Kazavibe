@@ -31,6 +31,8 @@
 @keyframes kv-bar{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
 .kv-bar{width:40%;animation:kv-bar 1.1s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){.kv-bar{animation:none!important;width:100%;opacity:.7}}
+.kv-loader-ring{position:absolute;inset:-7px;border:2px solid rgb(var(--b5) / .18);border-top-color:rgb(var(--b5));border-right-color:#f59e0b;border-radius:9999px;animation:kv-spin .9s linear infinite}
+@media (prefers-reduced-motion:reduce){.kv-loader-ring{animation:none;border-top-color:rgb(var(--b5));border-right-color:#f59e0b}}
 
 /* ---------- App feel (phones, installed app, APK) ---------- */
 html{-webkit-text-size-adjust:100%}
