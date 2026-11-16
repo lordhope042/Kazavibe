@@ -14,7 +14,7 @@ export default function CreatePost({ open, onClose }: { open: boolean; onClose: 
     if (f.type.startsWith('video/')) {
       const v = document.createElement('video');
       v.preload = 'metadata';
-      v.onloadedmetadata = () => { if (v.duration > 30.5) { setErr('Clips can be 30 seconds at most.'); URL.revokeObjectURL(u); } else { setFile(f); setUrl(u); } };
+      v.onloadedmetadata = () => { if (v.duration > 60.5) { setErr('Clips can be 60 seconds at most.'); URL.revokeObjectURL(u); } else { setFile(f); setUrl(u); } };
       v.onerror = () => setErr('This video format is not supported by your browser.');
       v.src = u;
     } else { setFile(f); setUrl(u); }
@@ -35,7 +35,7 @@ export default function CreatePost({ open, onClose }: { open: boolean; onClose: 
       <form onSubmit={submit} className="card max-h-[92vh] w-full max-w-md overflow-y-auto p-5">
         <div className="mb-3 flex items-center justify-between"><h2 className="text-lg font-bold">Create post</h2><button type="button" aria-label="Close" onClick={() => { reset(); onClose(); }} className="text-muted hover:text-fg"><i className="fa-solid fa-xmark text-lg" /></button></div>
         {url ? (file?.type.startsWith('video/') ? <video src={url} controls playsInline className="max-h-72 w-full rounded-2xl bg-black" /> : <img src={url} alt="Preview" className="max-h-72 w-full rounded-2xl object-cover" />)
-          : <label className="grid h-44 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-line text-center text-muted hover:border-brand-600"><span><i className="fa-solid fa-cloud-arrow-up mb-2 text-2xl" /><br />Tap to choose a photo or video<br /><span className="text-xs">Videos up to 30 seconds</span></span>
+          : <label className="grid h-44 cursor-pointer place-items-center rounded-2xl border-2 border-dashed border-line text-center text-muted hover:border-brand-600"><span><i className="fa-solid fa-cloud-arrow-up mb-2 text-2xl" /><br />Tap to choose a photo or video<br /><span className="text-xs">Videos up to 60 seconds</span></span>
             <input type="file" className="sr-only" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" onChange={(e) => pick(e.target.files?.[0])} /></label>}
         {url && <button type="button" className="mt-2 text-xs text-muted underline" onClick={reset}>Choose a different file</button>}
         <textarea name="caption" maxLength={500} rows={3} placeholder="Write a caption…" aria-label="Caption" className="inp mt-3" />

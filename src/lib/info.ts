@@ -8,7 +8,7 @@ export const INFO: Record<string, InfoPage> = {
     sections: [
       { h: 'Why we built it', p: ['Big social networks are built for everyone, which means they are built for no one in particular. KazaVibe starts small, with one community, so you see people you might actually know or want to meet.'] },
       { h: 'What we believe', ul: ['Your community comes first. We begin in Kazaure and grow town by town.', 'You are in control of who finds you, follows you and contacts you.', 'Safety is not a paid feature. Blocking, reporting and private profiles are free for everyone.', 'Dating is optional. Following, liking or commenting is never treated as romantic interest.'] },
-      { h: 'What you can do', ul: ['Share photos and clips of up to 30 seconds.', 'Discover people by interest and by area.', 'Chat privately, with message requests so strangers cannot flood your inbox.', 'Opt in to Connect to meet people for friendship, dating or marriage.'] },
+      { h: 'What you can do', ul: ['Share photos and clips of up to 60 seconds.', 'Discover people by interest and by area.', 'Chat privately, with message requests so strangers cannot flood your inbox.', 'Opt in to Connect to meet people for friendship, dating or marriage.'] },
     ],
   },
   safety: {
