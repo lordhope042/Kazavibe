@@ -7,7 +7,6 @@ import ThemeToggle from '@/components/ThemeToggle';
 import Footer from '@/components/Footer';
 import { LangSwitch } from '@/components/LangProvider';
 import { currentUser } from '@/lib/auth';
-import { prisma } from '@/lib/db';
 import { getLang } from '@/lib/lang';
 import { tr } from '@/lib/i18n';
 
@@ -26,16 +25,26 @@ const tiles = [
 export default async function Landing() {
   if (await currentUser()) redirect('/home');
   const L = getLang(), t = (k: Parameters<typeof tr>[1]) => tr(L, k);
-  const [members, posts] = await Promise.all([prisma.user.count(), prisma.post.count({ where: { status: 'VISIBLE' } })]);
+  const [members, posts] = ['—', '—'];
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-line bg-card/90 px-4 py-2.5 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <Link href="/" aria-label="KazaVibe home"><Logo size={32} /></Link>
-          <nav className="hidden items-center gap-1 rounded-full border border-line bg-bg/60 p-1 md:flex" aria-label="Sections">
-            {[['#features', 'nav_features'], ['#how', 'nav_how'], ['#safety', 'nav_safety']].map(([h, k]) => <a key={h} href={h} className="rounded-full px-4 py-1.5 text-xs font-semibold text-muted transition hover:text-fg">{t(k as 'nav_features')}</a>)}
-          </nav>
-          <div className="flex items-center gap-2"><LangSwitch /><ThemeToggle /><Link href="/login" className="btn-ghost btn-sm">{t('log_in')}</Link><Link href="/register" className="btn btn-sm">{t('sign_up')}</Link></div>
+      <header className="sticky top-0 z-40 border-b border-line bg-card/90 px-3 py-2 backdrop-blur-md sm:px-4 sm:py-2.5">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex min-h-10 items-center justify-between gap-2 sm:gap-4">
+            <Link href="/" aria-label="KazaVibe home" className="shrink-0"><Logo size={30} /></Link>
+            <nav className="hidden items-center gap-1 rounded-full border border-line bg-bg/60 p-1 md:flex" aria-label="Sections">
+              {[['#features', 'nav_features'], ['#how', 'nav_how'], ['#safety', 'nav_safety']].map(([h, k]) => <a key={h} href={h} className="rounded-full px-4 py-1.5 text-xs font-semibold text-muted transition hover:text-fg">{t(k as 'nav_features')}</a>)}
+            </nav>
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <div className="hidden items-center gap-2 sm:flex"><LangSwitch /><ThemeToggle /></div>
+              <Link href="/login" className="btn-ghost btn-sm whitespace-nowrap px-2.5 sm:px-3">{t('log_in')}</Link>
+              <Link href="/register" className="btn btn-sm whitespace-nowrap px-2.5 sm:px-3">{t('sign_up')}</Link>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2 border-t border-line/70 pt-2 sm:hidden">
+            <LangSwitch />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main className="flex-1">
@@ -50,7 +59,7 @@ export default async function Landing() {
           <div className="relative mx-auto max-w-2xl pt-8">
             <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-brand-600/20 to-amber-500/20 blur-3xl" aria-hidden="true" />
             <div className="card grid grid-cols-3 items-center gap-3 p-4 shadow-2xl sm:gap-4">
-              {tiles.map((x) => x.src ? <img key={x.n} src={x.src} alt="" className={`${x.h} w-full rounded-2xl border border-line object-cover`} /> : <div key={x.n} className={`${x.h} grid w-full place-items-center rounded-2xl bg-gradient-to-br ${x.g} text-white`} aria-hidden="true"><span><i className={`fa-solid ${x.ic} text-3xl`} /><span className="mt-1 block text-xs font-bold">{x.t}</span></span></div>)}
+              {tiles.map((x) => x.src ? <img key={x.n} src={x.src} alt="" loading="lazy" decoding="async" className={`${x.h} w-full rounded-2xl border border-line object-cover`} /> : <div key={x.n} className={`${x.h} grid w-full place-items-center rounded-2xl bg-gradient-to-br ${x.g} text-white`} aria-hidden="true"><span><i className={`fa-solid ${x.ic} text-3xl`} /><span className="mt-1 block text-xs font-bold">{x.t}</span></span></div>)}
             </div>
           </div>
         </section>

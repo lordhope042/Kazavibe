@@ -15,7 +15,7 @@ const Group = ({ title, children }: { title: string; children: React.ReactNode }
 
 export default function MenuClient({ me }: { me: P }) {
   const r = useRouter(), t = useT();
-  async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); r.push('/'); r.refresh(); }
+  async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); try { sessionStorage.setItem('kv-show-splash', '1'); } catch {} r.push('/'); r.refresh(); }
   return (
     <div className="-mx-3 -mt-3 pb-4">
       <Link href={`/profile/${me.username}`} className="flex items-center gap-4 border-b border-line bg-card px-4 py-5 active:bg-hover">

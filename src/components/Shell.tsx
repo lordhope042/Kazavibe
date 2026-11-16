@@ -30,7 +30,7 @@ export default function Shell({ me, children }: { me: Me; children: React.ReactN
     window.addEventListener('kv:compose', open);
     return () => { on = false; clearInterval(timer); window.removeEventListener('kv:compose', open); };
   }, [path]);
-  async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); r.push('/'); r.refresh(); }
+  async function logout() { await fetch('/api/auth/logout', { method: 'POST' }); try { sessionStorage.setItem('kv-show-splash', '1'); } catch {} r.push('/'); r.refresh(); }
   const on = (h: string) => path.startsWith(h);
   const isRoot = ROOTS.includes(path), titleKey = TITLES.find(([p]) => path === p || path.startsWith(p + '/'))?.[1];
   const badge = (n: number, cls: string) => n > 0 && <b className={`rounded-full bg-brand-600 text-white ${cls}`}>{n > 99 ? '99+' : n}</b>;
